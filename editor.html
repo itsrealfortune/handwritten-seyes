@@ -285,6 +285,9 @@
   <div class="field">
     <label for="printSeyes"><input type="checkbox" id="printSeyes"> Imprimer le Seyes (sinon feuille Seyes pre-imprimee)</label>
   </div>
+  <div class="field">
+    <label for="boldExport"><input type="checkbox" id="boldExport"> Export en gras</label>
+  </div>
   <button id="saveBtn">💾 Enregistrer</button>
   <input type="file" id="loadInput" accept=".json" style="display:none">
   <button class="secondary" id="loadBtn">📂 Charger</button>
@@ -975,6 +978,7 @@ document.getElementById('printBtn').addEventListener('click', () => window.print
 document.getElementById('screenshotBtn').addEventListener('click', async () => {
   const pages = document.querySelectorAll('.page');
   const includeSeyes = document.getElementById('printSeyes').checked;
+  const boldExport = document.getElementById('boldExport').checked;
 
   // Pré-charger les polices actives
   const activeFonts = getActiveFonts();
@@ -995,7 +999,7 @@ document.getElementById('screenshotBtn').addEventListener('click', async () => {
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
     const capStyle = document.createElement('style');
     capStyle.id = 'export-capture';
-    capStyle.textContent = '.page .virtual-cursor{display:none !important;}.span-highlight{background:transparent !important;box-shadow:none !important;}.page .zone-display{font-kerning:none !important;font-variant-ligatures:none !important;}';
+    capStyle.textContent = '.page .virtual-cursor{display:none !important;}.span-highlight{background:transparent !important;box-shadow:none !important;}.page .zone-display{font-kerning:none !important;font-variant-ligatures:none !important;}' + (boldExport ? '.page .zone-display{font-weight:700 !important;}' : '');
     document.head.appendChild(capStyle);
     for(let pi=0; pi<pages.length; pi++){
       const pg = pages[pi];
