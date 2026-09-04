@@ -619,9 +619,9 @@ document.getElementById('saveBtn').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'feuille-seyes-manuscrite.json';
+  a.download = 'calligraphia.json';
   a.click();
-  statusEl.textContent = 'Enregistré : feuille-seyes-manuscrite.json';
+  statusEl.textContent = 'Enregistré : calligraphia.json';
 });
 
 const loadInput = document.getElementById('loadInput');
@@ -711,7 +711,7 @@ document.getElementById('screenshotBtn').addEventListener('click', async () => {
     }
     const doneStyle = document.getElementById('export-capture');
     if(doneStyle && doneStyle.parentNode) doneStyle.parentNode.removeChild(doneStyle);
-    pdf.save('feuille-seyes-manuscrite.pdf');
+    pdf.save('calligraphia.pdf');
     statusEl.textContent=`PDF exporté ${pages.length} page(s)`;
   }catch(err){
     const errStyle = document.getElementById('export-capture');
