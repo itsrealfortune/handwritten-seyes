@@ -46,7 +46,7 @@
     --page-h: 29.7cm;
     --margin-x: 3.403cm;
     --first-line-y: calc(3.285cm + 2.5mm);
-    --line-h: 0.74cm;
+    --line-h: 0.767cm;
     --ink: #1b3a6b;
     --font-size: 0.55cm;
     --letter-spacing: 0px;
@@ -207,6 +207,7 @@
     font-family:monospace;
     white-space:pre-wrap;
     word-break:break-word;
+    overflow:hidden;
     padding:0;
   }
   .zone-stage.main .zone-input{ padding:0 0.25cm; text-align: var(--align-main); }
@@ -278,8 +279,8 @@
     <input type="range" id="letterSpacing" min="-2" max="5" step="0.1" value="0">
   </div>
   <div class="field">
-    <label for="lineH">Interligne : <span id="lineHVal">0.74</span>cm</label>
-    <input type="range" id="lineH" min="0.6" max="1.2" step="0.01" value="0.74">
+    <label for="lineH">Interligne : <span id="lineHVal">0.767</span>cm</label>
+    <input type="range" id="lineH" min="0.6" max="1.2" step="0.001" value="0.767">
   </div>
   <div class="field">
     <label for="printSeyes"><input type="checkbox" id="printSeyes"> Imprimer le Seyes (sinon feuille Seyes pre-imprimee)</label>
@@ -287,9 +288,10 @@
   <button id="saveBtn">💾 Enregistrer</button>
   <input type="file" id="loadInput" accept=".json" style="display:none">
   <button class="secondary" id="loadBtn">📂 Charger</button>
+  <button class="secondary" id="demoBtn">🎬 Démo</button>
   <button class="secondary" id="clearBtn">🗑 Effacer</button>
-  <button id="screenshotBtn"> Screenshot PDF (exact �cran)</button>
-  <button id="printBtn">🖨 Imprimer / PDF</button>
+  <button id="screenshotBtn">Exporter en PDF</button>
+  <button id="printBtn" style="display:none">Imprimer / PDF</button>
 </div>
 
 <div class="body-layout">
@@ -345,8 +347,6 @@ const FONTS = [
 const BELLA_CLUSTER = [
   "Bella Bellia",
   "Jantan",
-  "Billastim",
-  "Scriptys",
   "Roberts Humter"
 ];
 const OVERSIZED_FONTS = []; // desactive - on repart de 0
@@ -451,7 +451,7 @@ function createZoneEditor(inputEl, displayEl, placeholderEl){
   }
 
   inputEl.addEventListener('input', () => applyNewValue(inputEl.value));
-  inputEl.parentElement.addEventListener('click', () => inputEl.focus());
+  inputEl.parentElement.addEventListener('click', () => { const sy=window.scrollY; inputEl.focus(); requestAnimationFrame(()=>window.scrollTo(0,sy)); });
 
   return {
     getState: () => state,
@@ -512,53 +512,65 @@ function resetBlink(){
 const virtualCursor = document.getElementById('virtualCursor');
 function updateVirtualCursor(){
   const input = document.getElementById('inputMain');
-  const display = document.getElementById('displayMain');
-  if(!input || !display) return;
+  if(!input) return;
   if(virtualCursor.parentElement) virtualCursor.remove();
   const pos = input.selectionStart;
-  const lines = display.querySelectorAll(':scope > div');
+  const displays = [...document.querySelectorAll('.zone-stage.main .zone-display')];
   let cur=0;
-  for(let li=0; li<lines.length; li++){
-    const line=lines[li];
-    const spans=[...line.querySelectorAll('span')].filter(s=>s.textContent!=='\u00A0');
-    const lineLen = line.textContent.replace(/\u00A0/g,'').length;
-    if(pos >= cur && pos <= cur+lineLen){
-      const inner = pos - cur;
-      if(inner < spans.length){
-        line.insertBefore(virtualCursor, spans[inner]);
-      } else if(spans.length){
-        spans[spans.length-1].after(virtualCursor);
-      } else {
-        line.appendChild(virtualCursor);
-      }
-      virtualCursor.style.display='inline-block';
-      return;
-    }
-    if(pos === cur+lineLen && pos < cur+lineLen+1){
-      const nextLine=lines[li+1];
-      if(nextLine){
-        nextLine.prepend(virtualCursor);
+  for(const display of displays){
+    const lines = display.querySelectorAll(':scope > div');
+    for(let li=0; li<lines.length; li++){
+      const line=lines[li];
+      const spans=[...line.querySelectorAll('span')].filter(s=>s.textContent!=='\u00A0');
+      const lineLen = line.textContent.replace(/\u00A0/g,'').length;
+      if(pos >= cur && pos <= cur+lineLen){
+        const inner = pos - cur;
+        if(inner < spans.length){
+          line.insertBefore(virtualCursor, spans[inner]);
+        } else if(spans.length){
+          spans[spans.length-1].after(virtualCursor);
+        } else {
+          line.appendChild(virtualCursor);
+        }
         virtualCursor.style.display='inline-block';
+        virtualCursor.style.position='';
+        virtualCursor.style.inset='';
         return;
       }
+      if(pos === cur+lineLen && pos < cur+lineLen+1){
+        const nextLine=lines[li+1];
+        if(nextLine){
+          nextLine.prepend(virtualCursor);
+          virtualCursor.style.display='inline-block';
+          virtualCursor.style.position='';
+          virtualCursor.style.inset='';
+          return;
+        }
+      }
+      cur+=lineLen+1;
     }
-    cur+=lineLen+1;
   }
-  // fin : superpose sur la dernière lettre
-  const lastLine=lines[lines.length-1];
-  if(lastLine){
-    const lastSpans=[...lastLine.querySelectorAll('span')].filter(s=>s.textContent!=='\u00A0');
-    if(lastSpans.length){
-      const last=lastSpans[lastSpans.length-1];
-      last.style.position='relative';
-      last.appendChild(virtualCursor);
+  // fin : superpose sur la dernière lettre de la dernière page
+  const allDisplays = document.querySelectorAll('.zone-stage.main .zone-display');
+  const lastDisp = allDisplays[allDisplays.length-1];
+  if(lastDisp){
+    const lastLine=[...lastDisp.querySelectorAll(':scope > div')].pop();
+    if(lastLine){
+      const lastSpans=[...lastLine.querySelectorAll('span')].filter(s=>s.textContent!=='\u00A0');
+      if(lastSpans.length){
+        const last=lastSpans[lastSpans.length-1];
+        last.style.position='relative';
+        last.appendChild(virtualCursor);
+      } else {
+        lastLine.appendChild(virtualCursor);
+      }
+      virtualCursor.style.display='block';
+      virtualCursor.style.position='absolute';
+      virtualCursor.style.inset='0';
+      resetBlink();
     } else {
-      lastLine.appendChild(virtualCursor);
+      resetBlink();
     }
-    virtualCursor.style.display='block';
-    virtualCursor.style.position='absolute';
-    virtualCursor.style.inset='0';
-    resetBlink();
   } else {
     resetBlink();
   }
@@ -588,7 +600,7 @@ function updateSelectionHighlight(){
     });
   });
   if(!hasSel) return;
-  const allSpans=[...document.querySelectorAll('.zone-display span')].filter(s=>s.textContent!=='\u00A0');
+  const allSpans=[...document.querySelectorAll('.zone-stage.main .zone-display span')].filter(s=>s.textContent!=='\u00A0');
   let idx=0;
   allSpans.forEach(span=>{
     if(idx>=selStart && idx<selEnd) span.classList.add('span-highlight');
@@ -606,31 +618,48 @@ document.getElementById('inputMain')?.addEventListener('blur', ()=>{ document.qu
 // Selection de spans par clic et drag sur la zone d'affichage
 (function(){
   const input=document.getElementById('inputMain');
-  const stage=document.getElementById('stageMain');
-  if(!input||!stage) return;
+  if(!input) return;
   let dragging=false;
   let dragStartIdx=-1;
-  function getSpanIndex(e){
+  function getCursorPos(e){
     const el=document.elementFromPoint(e.clientX,e.clientY);
     if(!el||el.tagName!=='SPAN') return -1;
-    const allSpans=[...document.querySelectorAll('.zone-display span')].filter(s=>s.textContent!=='\u00A0');
-    return allSpans.indexOf(el);
+    const displays=[...document.querySelectorAll('.zone-stage.main .zone-display')];
+    let globalOffset=0;
+    for(const disp of displays){
+      const spans=[...disp.querySelectorAll('span')].filter(s=>s.textContent!=='\u00A0');
+      if(disp.contains(el)){
+        const localIdx=spans.indexOf(el);
+        if(localIdx<0) return -1;
+        const rect=el.getBoundingClientRect();
+        const midX=rect.left+rect.width/2;
+        const pos=globalOffset+localIdx;
+        return e.clientX < midX ? pos : pos+1;
+      }
+      globalOffset+=spans.length;
+    }
+    return -1;
   }
   function setCursorAt(idx){
     if(idx<0) return;
+    const sy=window.scrollY;
     input.focus();
+    requestAnimationFrame(()=>window.scrollTo(0,sy));
     input.setSelectionRange(idx,idx);
     setTimeout(()=>{ updateVirtualCursor(); updateSelectionHighlight(); resetBlink(); },0);
   }
   function setSelection(a,b){
     const start=Math.min(a,b);
     const end=Math.max(a,b);
+    const sy=window.scrollY;
     input.focus();
+    requestAnimationFrame(()=>window.scrollTo(0,sy));
     input.setSelectionRange(start,end);
     setTimeout(()=>{ updateVirtualCursor(); updateSelectionHighlight(); },0);
   }
-  stage.addEventListener('mousedown',(e)=>{
-    const idx=getSpanIndex(e);
+  document.addEventListener('mousedown',(e)=>{
+    if(!e.target.closest('.zone-stage.main')) return;
+    const idx=getCursorPos(e);
     if(idx<0) return;
     e.preventDefault();
     dragging=true;
@@ -639,7 +668,7 @@ document.getElementById('inputMain')?.addEventListener('blur', ()=>{ document.qu
   });
   document.addEventListener('mousemove',(e)=>{
     if(!dragging) return;
-    const idx=getSpanIndex(e);
+    const idx=getCursorPos(e);
     if(idx<0) return;
     setSelection(dragStartIdx,idx);
   });
@@ -668,7 +697,7 @@ updateZoom();
 const pagesContainer = document.getElementById('pagesContainer');
 const templatePage = document.querySelector('.page');
 function getLinesPerPage(){
-  const lineHcm = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-h')) || 0.74;
+  const lineHcm = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-h')) || 0.767;
   const vNudgeEl = document.getElementById('vNudge');
   const firstLineYCm = 3.285 + (parseFloat(vNudgeEl?.value)||2.5)/10;
   const pageHcm = 29.7;
@@ -680,8 +709,7 @@ function ensurePages(n){
   while(pagesContainer.querySelectorAll('.page').length < n){
     const clone = templatePage.cloneNode(true);
     clone.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
-    const disp = clone.querySelector('.zone-display');
-    if(disp) disp.innerHTML='';
+    clone.querySelectorAll('.zone-display').forEach(d=>d.innerHTML='');
     clone.querySelectorAll('textarea').forEach(t=>t.style.display='none');
     clone.querySelectorAll('.zone-placeholder').forEach(p=>p.style.display='none');
     pagesContainer.appendChild(clone);
@@ -763,7 +791,7 @@ function renderMain(){
   ensurePages(pageCount);
   const pages = pagesContainer.querySelectorAll('.page');
   pages.forEach((pg, pi)=>{
-    let targetDisp = pi===0 ? mainDisplay0 : pg.querySelector('.zone-display');
+    let targetDisp = pi===0 ? mainDisplay0 : pg.querySelector('.zone-stage.main .zone-display');
     if(!targetDisp) return;
     targetDisp.innerHTML='';
     const frag=document.createDocumentFragment();
@@ -837,7 +865,7 @@ mainInput0.addEventListener('input', ()=>{
   renderMain();
   setTimeout(updateSelectionHighlight,0);
 });
-mainInput0.parentElement.addEventListener('click', ()=>mainInput0.focus());
+mainInput0.parentElement.addEventListener('click', ()=>{ const sy=window.scrollY; mainInput0.focus(); requestAnimationFrame(()=>window.scrollTo(0,sy)); });
 lineH.addEventListener('input', ()=>{ setTimeout(()=>{ renderMain(); updateSelectionHighlight(); },0); });
 vNudge.addEventListener('input', ()=>{ setTimeout(()=>{ renderMain(); updateSelectionHighlight(); },0); });
 
@@ -890,8 +918,8 @@ loadInput.addEventListener('change', async (e) => {
     letterSpacing.value = (data.letterSpacing ?? 0);
     letterSpacingVal.textContent = letterSpacing.value;
     root.setProperty('--letter-spacing', letterSpacing.value + 'px');
-    lineH.value = (data.lineH ?? 0.74);
-    lineHVal.textContent = parseFloat(lineH.value).toFixed(2);
+    lineH.value = (data.lineH ?? 0.767);
+    lineHVal.textContent = parseFloat(lineH.value).toFixed(3);
     root.setProperty('--line-h', lineH.value + 'cm');
     printSeyes.checked = (data.printSeyes ?? false);
     document.querySelectorAll('.page').forEach(p=>p.classList.toggle('print-seyes', printSeyes.checked));
@@ -908,25 +936,61 @@ loadInput.addEventListener('change', async (e) => {
   loadInput.value = '';
 });
 
+document.getElementById('demoBtn').addEventListener('click', async () => {
+  try {
+    const resp = await fetch('demo.json');
+    const data = await resp.json();
+    inkColor.value = data.ink || '#1b3a6b';
+    root.setProperty('--ink', inkColor.value);
+    fontSize.value = (data.fontSize ?? 0.55);
+    fontSizeVal.textContent = fontSize.value;
+    root.setProperty('--font-size', fontSize.value + 'cm');
+    alignMain.value = data.alignMain || 'left';
+    root.setProperty('--align-main', alignMain.value);
+    vNudge.value = (data.vNudge ?? 2.5);
+    vNudgeVal.textContent = vNudge.value;
+    root.setProperty('--first-line-y', `calc(3.285cm + ${vNudge.value}mm)`);
+    letterSpacing.value = (data.letterSpacing ?? 0);
+    letterSpacingVal.textContent = letterSpacing.value;
+    root.setProperty('--letter-spacing', letterSpacing.value + 'px');
+    lineH.value = (data.lineH ?? 0.767);
+    lineHVal.textContent = parseFloat(lineH.value).toFixed(3);
+    root.setProperty('--line-h', lineH.value + 'cm');
+    printSeyes.checked = (data.printSeyes ?? false);
+    document.querySelectorAll('.page').forEach(p=>p.classList.toggle('print-seyes', printSeyes.checked));
+    if (Array.isArray(data.activeFonts)) {
+      fontListEl.querySelectorAll('input').forEach(b => { b.checked = data.activeFonts.includes(b.value); });
+    }
+    marginEditor.setState(data.margin || []);
+    mainEditor.setState(data.main || []);
+    statusEl.textContent = 'Démo chargée';
+  } catch (err) {
+    statusEl.textContent = 'Erreur démo : ' + err.message;
+    console.error(err);
+  }
+});
+
 document.getElementById('printBtn').addEventListener('click', () => window.print());
 // Screenshot exact du .page comme affiche a l'ecran - multipage
 document.getElementById('screenshotBtn').addEventListener('click', async () => {
   const pages = document.querySelectorAll('.page');
-  // Seyes en dataURL une fois
-  const firstPage = pages[0];
-  const origBg = firstPage ? (firstPage.style.backgroundImage || getComputedStyle(firstPage).backgroundImage) : '';
+  const includeSeyes = document.getElementById('printSeyes').checked;
   let seyesDataUrl = null;
-  try{
-    const mm = origBg.match(/url\("([^"]+)"\)/);
-    if(mm && mm[1]){
-      if(mm[1].startsWith('data:')) seyesDataUrl = mm[1];
-      else {
-        const resp = await fetch(mm[1]);
-        const blob = await resp.blob();
-        seyesDataUrl = await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
+  if(includeSeyes){
+    const firstPage = pages[0];
+    const origBg = firstPage ? (firstPage.style.backgroundImage || getComputedStyle(firstPage).backgroundImage) : '';
+    try{
+      const mm = origBg.match(/url\("([^"]+)"\)/);
+      if(mm && mm[1]){
+        if(mm[1].startsWith('data:')) seyesDataUrl = mm[1];
+        else {
+          const resp = await fetch(mm[1]);
+          const blob = await resp.blob();
+          seyesDataUrl = await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
+        }
       }
-    }
-  }catch(e){ console.warn(e); }
+    }catch(e){ console.warn(e); }
+  }
   try{
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
@@ -935,22 +999,30 @@ document.getElementById('screenshotBtn').addEventListener('click', async () => {
       if(seyesDataUrl) pdf.addImage(seyesDataUrl, 'PNG', 0, 0, 210, 297);
       const prevBg = pg.style.backgroundImage;
       const prevBgColor = pg.style.backgroundColor;
+      const prevZoom = pg.style.zoom;
+      const prevTransform = pg.style.transform;
+      const prevTransformOrigin = pg.style.transformOrigin;
       pg.style.backgroundImage='none';
       pg.style.backgroundColor='transparent';
+      pg.style.zoom='1';
+      pg.style.transform='none';
+      pg.style.transformOrigin='top center';
       const canvas = await html2canvas(pg, { scale: 2, useCORS:true, allowTaint:false, backgroundColor:null, logging:false, letterRendering:true });
       pg.style.backgroundImage = prevBg;
       pg.style.backgroundColor = prevBgColor;
+      pg.style.zoom = prevZoom;
+      pg.style.transform = prevTransform;
+      pg.style.transformOrigin = prevTransformOrigin;
       const imgData = canvas.toDataURL('image/png');
       if(pi>0) pdf.addPage();
       pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-      // Seyes déjà ajouté, texte par dessus
     }
-    pdf.save('feuille-seyes-manuscrite-screenshot.pdf');
-    statusEl.textContent = `PDF screenshot ${pages.length} page(s) genere`;
+    pdf.save('feuille-seyes-manuscrite.pdf');
+    statusEl.textContent = `PDF exporté ${pages.length} page(s)`;
   }catch(err){
     console.error(err);
-    statusEl.textContent='Erreur screenshot: '+err.message;
-    alert('Erreur screenshot: '+err.message);
+    statusEl.textContent='Erreur export: '+err.message;
+    alert('Erreur export: '+err.message);
   }
 });
 
