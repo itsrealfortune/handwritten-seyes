@@ -1,0 +1,242 @@
+  @font-face { font-family: "Adellia"; src: url("../fonts/adellia_ttf_personal_use.ttf") format("truetype"); }
+  @font-face { font-family: "Alleysha"; src: url("../fonts/alleysha.ttf") format("truetype"); }
+  @font-face { font-family: "Attractive"; src: url("../fonts/attractive_axajr.ttf") format("truetype"); }
+  @font-face { font-family: "Beasley"; src: url("../fonts/beasley.otf") format("opentype"); }
+  @font-face { font-family: "Beatrica"; src: url("../fonts/beatrica.otf") format("opentype"); }
+  @font-face { font-family: "Beatrica Regular Alt"; src: url("../fonts/beatrica_regular.otf") format("opentype"); }
+  @font-face { font-family: "Bella Bellia"; src: url("../fonts/bella_bellia.otf") format("opentype"); }
+  @font-face { font-family: "Best Love"; src: url("../fonts/best_love.ttf") format("truetype"); }
+  @font-face { font-family: "Billastim"; src: url("../fonts/billastim_personal_use_only.ttf") format("truetype"); }
+  @font-face { font-family: "Bionetha"; src: url("../fonts/bionetha_regular.otf") format("opentype"); }
+  @font-face { font-family: "Blastine"; src: url("../fonts/blastine_personal_use_only.ttf") format("truetype"); }
+  @font-face { font-family: "Callistera"; src: url("../fonts/callistera_free.otf") format("opentype"); }
+  @font-face { font-family: "Contributor Regular"; src: url("../fonts/contributor_regular.ttf") format("truetype"); }
+  @font-face { font-family: "DesertSong"; src: url("../fonts/desertsong_regular.woff2") format("woff2"); }
+  @font-face { font-family: "EverleighMedium"; src: url("../fonts/everleighmedium.woff2") format("woff2"); }
+  @font-face { font-family: "EverleighScript"; src: url("../fonts/everleighscript.woff2") format("woff2"); }
+  @font-face { font-family: "Gloomy Saturday Script"; src: url("../fonts/gloomy_saturday_script.woff2") format("woff2"); }
+  @font-face { font-family: "Heart Haily"; src: url("../fonts/heart_haily.ttf") format("truetype"); }
+  @font-face { font-family: "IHeartIt"; src: url("../fonts/iheartit_regular.woff2") format("woff2"); }
+  @font-face { font-family: "Insyira"; src: url("../fonts/insyira.woff2") format("woff2"); }
+  @font-face { font-family: "Insyria"; src: url("../fonts/insyria.woff2") format("woff2"); }
+  @font-face { font-family: "Lilypaly"; src: url("../fonts/lilypaly_pmed.otf") format("opentype"); }
+  @font-face { font-family: "Jantan"; src: url("../fonts/jantan.ttf") format("truetype"); }
+  @font-face { font-family: "Leafing"; src: url("../fonts/leafing.otf") format("opentype"); }
+  @font-face { font-family: "Lucky Spark"; src: url("../fonts/lucky_spark_demo.otf") format("opentype"); }
+  @font-face { font-family: "Margenta"; src: url("../fonts/margenta.ttf") format("truetype"); }
+  @font-face { font-family: "Marlborolah"; src: url("../fonts/aa15dec14231edb1a64a890b039a3052.woff2") format("woff2"); }
+  @font-face { font-family: "PoetryDarling"; src: url("../fonts/poetrydarling.woff2") format("woff2"); }
+  @font-face { font-family: "PoetryDarling Italic"; src: url("../fonts/poetrydarling_italic.woff2") format("woff2"); }
+  @font-face { font-family: "Quanika"; src: url("../fonts/quanika_regular.ttf") format("truetype"); }
+  @font-face { font-family: "Roberts Humter"; src: url("../fonts/roberts_humter.otf") format("opentype"); }
+  @font-face { font-family: "Rottarity"; src: url("../fonts/rottarity_demo.ttf") format("truetype"); }
+  @font-face { font-family: "Rusthian"; src: url("../fonts/rusthian.ttf") format("truetype"); }
+  @font-face { font-family: "Scriptys"; src: url("../fonts/scriptys_demo.ttf") format("truetype"); }
+  @font-face { font-family: "Sweetgentle"; src: url("../fonts/sweetgentle_free.otf") format("opentype"); }
+
+  :root{
+    image-resolution: 300dpi;
+    --page-w: 21cm;
+    --page-h: 29.7cm;
+    --margin-x: 3.403cm;
+    --first-line-y: calc(3.285cm + 2.5mm);
+    --line-h: 0.767cm;
+    --ink: #1b3a6b;
+    --font-size: 0.55cm;
+    --letter-spacing: 0px;
+    --align-main: left;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:#e9e7df; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+
+  .toolbar{
+    max-width: calc(var(--page-w) + 280px);
+    margin: 16px auto 0;
+    background:white;
+    border:1px solid #dcd8cb;
+    border-radius:10px;
+    padding:14px 16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    align-items:flex-end;
+    font-size:13px;
+  }
+  .field{ display:flex; flex-direction:column; gap:4px; }
+  .field label{ font-size:11px; font-weight:600; color:#4a4940; }
+  select, input[type=color], input[type=range]{
+    padding:6px; border:1px solid #d9d5c8; border-radius:6px; font-size:13px;
+  }
+  button{
+    background:#3355a0; color:white; border:none; padding:9px 16px;
+    border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; height:33px;
+  }
+  button.secondary{ background:white; color:#3355a0; border:1px solid #3355a0; }
+
+  .body-layout{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    width:100vw;
+    min-height:100vh;
+    margin:0;
+    padding:20px 0 40px;
+    box-sizing:border-box;
+  }
+  .pages-container{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    align-items:center;
+  }
+  .page{
+    image-resolution: 300dpi;
+    width: var(--page-w);
+    height: var(--page-h);
+    flex: 0 0 auto;
+    position:relative;
+    background-image:url("../assets/feuille-seyes.png");
+    background-size:100% 100%;
+    background-repeat:no-repeat;
+    box-shadow:0 2px 14px rgba(0,0,0,.18);
+    transform-origin:top center;
+  }
+
+  .fontpool{
+    position:fixed;
+    left:0;
+    top:50%;
+    transform:translateY(-50%) translateX(-100%);
+    width:280px;
+    max-height:80vh;
+    background:white;
+    border:1px solid #dcd8cb;
+    border-left:none;
+    border-radius:0 10px 10px 0;
+    padding:14px;
+    overflow:auto;
+    box-shadow:2px 0 12px rgba(0,0,0,.15);
+    transition:transform .25s ease;
+    z-index:1000;
+  }
+  .fontpool.open{
+    transform:translateY(-50%) translateX(0);
+  }
+  .font-toggle{
+    position:fixed;
+    left:0;
+    top:50%;
+    transform:translateY(-50%);
+    width:28px;
+    height:56px;
+    background:white;
+    color:#3355a0;
+    border:1px solid #dcd8cb;
+    border-left:none;
+    border-radius:0 8px 8px 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:2px 0 8px rgba(0,0,0,.12);
+    z-index:1001;
+    transition:left .25s ease;
+    font-size:16px;
+    line-height:1;
+  }
+  .font-toggle.open{
+    left:280px;
+  }
+  .fontpool h2{ margin:0 0 10px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:#6b6a63; }
+  .fontpool .actions{ display:flex; gap:8px; margin-bottom:10px; }
+  .fontpool .actions button{ flex:1; font-size:11px; padding:6px; height:auto; }
+  .fontpool label{ display:flex; align-items:center; gap:8px; font-size:13px; padding:3px 2px; cursor:pointer; }
+
+  .virtual-cursor{
+    display:inline-block;
+    width:2px;
+    height:var(--line-h);
+    background:#1b3a6b;
+    border-left:1.5px solid #1b3a6b;
+    pointer-events:none;
+    vertical-align:text-bottom;
+    animation:blink 1s step-start infinite;
+    opacity:1;
+  }
+  @keyframes blink{ 0%,49%{ opacity:1; } 50%,100%{ opacity:0; } }
+  .zone-stage{
+    position:absolute;
+    top: var(--first-line-y);
+    bottom: 0.4cm;
+  }
+  .zone-stage.margin{ left:0; width: var(--margin-x); }
+  .zone-stage.main{ left: var(--margin-x); right:0; }
+
+  .zone-display{
+    position:relative;
+    letter-spacing: var(--letter-spacing);
+    width:100%; height:100%;
+    color: var(--ink);
+    font-size: var(--font-size);
+    line-height: var(--line-h);
+    white-space:pre-wrap;
+    word-break:break-word;
+    overflow:hidden;
+    cursor:text;
+  }
+  .zone-stage.margin .zone-display{ text-align:center; }
+  .zone-stage.main .zone-display{ text-align: var(--align-main); padding:0 0.25cm; }
+
+  .zone-input{
+    position:absolute;
+    letter-spacing: var(--letter-spacing);
+    inset:0;
+    width:100%; height:100%;
+    resize:none; border:none; outline:none;
+    background:transparent; color:transparent;
+    caret-color: transparent;
+    pointer-events:none;
+    font-size: var(--font-size);
+    line-height: var(--line-h);
+    font-family:monospace;
+    white-space:pre-wrap;
+    word-break:break-word;
+    overflow:hidden;
+    padding:0;
+  }
+  .zone-stage.main .zone-input{ padding:0 0.25cm; text-align: var(--align-main); }
+
+  .zone-input::selection{ background:transparent; color:transparent; }
+  .zone-input::-moz-selection{ background:transparent; color:transparent; }
+
+  .span-highlight{
+    background:rgba(27,58,107,.18);
+    border-radius:2px;
+    box-shadow:0 0 0 1px rgba(27,58,107,.25);
+  }
+  .zone-placeholder{
+    position:absolute;
+    letter-spacing: var(--letter-spacing);
+    top:0; left:0;
+    color:#9aa0ab; font-size: var(--font-size); line-height:var(--line-h);
+    pointer-events:none;
+  }
+  .zone-stage.main .zone-placeholder{ padding:0 0.25cm; }
+
+  .status{ max-width: calc(var(--page-w) + 280px); margin: 0 auto 20px; font-size:12px; color:#6b6a63; text-align:right; }
+
+  @media print{
+    body{ background:white; }
+    .toolbar, .fontpool, .font-toggle, .status{ display:none; }
+    .body-layout{ margin:0; display:block; }
+    .page{
+    image-resolution: 300dpi; margin:0; box-shadow:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; zoom:1 !important; transform:none !important; }
+    .page:not(.print-seyes){ background-image:none !important; }
+    .pages-container{ gap:0; }
+    .page{ page-break-after:always; }
+    .page:last-child{ page-break-after:auto; }
+    .zone-display div{ min-height:var(--line-h) !important; line-height:var(--line-h) !important; }
+    .zone-input{ display:none; }
+    .span-highlight{ background:transparent !important; box-shadow:none !important; }
+    @page{ size: 21cm 29.7cm; margin:0; }
+  }
