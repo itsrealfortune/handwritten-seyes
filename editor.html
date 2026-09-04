@@ -993,6 +993,10 @@ document.getElementById('screenshotBtn').addEventListener('click', async () => {
   try{
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const capStyle = document.createElement('style');
+    capStyle.id = 'export-capture';
+    capStyle.textContent = '.page .virtual-cursor{display:none !important;}.span-highlight{background:transparent !important;box-shadow:none !important;}.page .zone-display{font-kerning:none !important;font-variant-ligatures:none !important;}';
+    document.head.appendChild(capStyle);
     for(let pi=0; pi<pages.length; pi++){
       const pg = pages[pi];
       const prevZoom = pg.style.zoom;
@@ -1007,19 +1011,27 @@ document.getElementById('screenshotBtn').addEventListener('click', async () => {
         pg.style.backgroundImage='none';
         pg.style.backgroundColor='#fff';
       }
-      const canvas = await html2canvas(pg, { scale: 4, useCORS:true, allowTaint:false, backgroundColor:'#fff', logging:false, letterRendering:true });
-      pg.style.zoom = prevZoom;
-      pg.style.transform = prevTransform;
-      pg.style.transformOrigin = prevTransformOrigin;
-      pg.style.backgroundImage = prevBg;
-      pg.style.backgroundColor = prevBgColor;
+      let canvas;
+      try{
+        canvas = await html2canvas(pg, { scale: 4, useCORS:true, allowTaint:false, backgroundColor:'#fff', logging:false, letterRendering:false });
+      }finally{
+        pg.style.zoom = prevZoom;
+        pg.style.transform = prevTransform;
+        pg.style.transformOrigin = prevTransformOrigin;
+        pg.style.backgroundImage = prevBg;
+        pg.style.backgroundColor = prevBgColor;
+      }
       const imgData = canvas.toDataURL('image/jpeg', 0.85);
       if(pi>0) pdf.addPage();
       pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
     }
+    const doneStyle = document.getElementById('export-capture');
+    if(doneStyle && doneStyle.parentNode) doneStyle.parentNode.removeChild(doneStyle);
     pdf.save('feuille-seyes-manuscrite.pdf');
-    statusEl.textContent = `PDF exporté ${pages.length} page(s)`;
+    statusEl.textContent=`PDF exporté ${pages.length} page(s)`;
   }catch(err){
+    const errStyle = document.getElementById('export-capture');
+    if(errStyle && errStyle.parentNode) errStyle.parentNode.removeChild(errStyle);
     console.error(err);
     statusEl.textContent='Erreur export: '+err.message;
     alert('Erreur export: '+err.message);
