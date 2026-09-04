@@ -547,10 +547,12 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   if ((marginEditor.getState().length || mainEditor.getState().length) && !confirm('Effacer tout le texte des deux zones ?')) return;
   marginEditor.clear();
   mainEditor.clear();
+  saveAutosave();
 });
 
-document.getElementById('saveBtn').addEventListener('click', () => {
-  const payload = {
+const AUTO_KEY = 'calligraphia.autosave.v1';
+function collectState(){
+  return {
     version: 1,
     ink: inkColor.value,
     fontSize: fontSize.value,
@@ -559,10 +561,61 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     letterSpacing: letterSpacing.value,
     lineH: lineH.value,
     printSeyes: printSeyes.checked,
+    boldExport: document.getElementById('boldExport').checked,
     activeFonts: getActiveFonts(),
     margin: marginEditor.getState(),
     main: mainEditor.getState()
   };
+}
+function applyState(data){
+  inkColor.value = data.ink || '#1b3a6b';
+  root.setProperty('--ink', inkColor.value);
+  fontSize.value = (data.fontSize ?? 0.55);
+  fontSizeVal.textContent = fontSize.value;
+  root.setProperty('--font-size', fontSize.value + 'cm');
+  alignMain.value = data.alignMain || 'left';
+  root.setProperty('--align-main', alignMain.value);
+  vNudge.value = (data.vNudge ?? 2.5);
+  vNudgeVal.textContent = vNudge.value;
+  root.setProperty('--first-line-y', `calc(3.285cm + ${vNudge.value}mm)`);
+  letterSpacing.value = (data.letterSpacing ?? 0);
+  letterSpacingVal.textContent = letterSpacing.value;
+  root.setProperty('--letter-spacing', letterSpacing.value + 'px');
+  lineH.value = (data.lineH ?? 0.767);
+  lineHVal.textContent = parseFloat(lineH.value).toFixed(3);
+  root.setProperty('--line-h', lineH.value + 'cm');
+  printSeyes.checked = (data.printSeyes ?? false);
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('print-seyes', printSeyes.checked));
+  document.getElementById('boldExport').checked = (data.boldExport ?? false);
+  if (Array.isArray(data.activeFonts)) {
+    fontListEl.querySelectorAll('input').forEach(b => { b.checked = data.activeFonts.includes(b.value); });
+  }
+  marginEditor.setState(data.margin || []);
+  mainEditor.setState(data.main || []);
+}
+let autoTimer = null;
+function saveAutosave(){
+  try{ localStorage.setItem(AUTO_KEY, JSON.stringify(collectState())); }catch(e){}
+}
+function scheduleAutosave(){
+  if(autoTimer) clearTimeout(autoTimer);
+  autoTimer = setTimeout(saveAutosave, 800);
+}
+function restoreAutosave(){
+  let data = null;
+  try{
+    const raw = localStorage.getItem(AUTO_KEY);
+    if(raw) data = JSON.parse(raw);
+  }catch(e){}
+  if(!data) return;
+  applyState(data);
+  statusEl.textContent = 'Brouillon restauré';
+}
+document.addEventListener('input', scheduleAutosave);
+document.addEventListener('change', scheduleAutosave);
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const payload = collectState();
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -579,29 +632,7 @@ loadInput.addEventListener('change', async (e) => {
   try {
     const text = await file.text();
     const data = JSON.parse(text);
-    inkColor.value = data.ink || '#1b3a6b';
-    root.setProperty('--ink', inkColor.value);
-    fontSize.value = (data.fontSize ?? 0.55);
-    fontSizeVal.textContent = fontSize.value;
-    root.setProperty('--font-size', fontSize.value + 'cm');
-    alignMain.value = data.alignMain || 'left';
-    root.setProperty('--align-main', alignMain.value);
-    vNudge.value = (data.vNudge ?? 2.5);
-    vNudgeVal.textContent = vNudge.value;
-    root.setProperty('--first-line-y', `calc(3.285cm + ${vNudge.value}mm)`);
-    letterSpacing.value = (data.letterSpacing ?? 0);
-    letterSpacingVal.textContent = letterSpacing.value;
-    root.setProperty('--letter-spacing', letterSpacing.value + 'px');
-    lineH.value = (data.lineH ?? 0.767);
-    lineHVal.textContent = parseFloat(lineH.value).toFixed(3);
-    root.setProperty('--line-h', lineH.value + 'cm');
-    printSeyes.checked = (data.printSeyes ?? false);
-    document.querySelectorAll('.page').forEach(p=>p.classList.toggle('print-seyes', printSeyes.checked));
-    if (Array.isArray(data.activeFonts)) {
-      fontListEl.querySelectorAll('input').forEach(b => { b.checked = data.activeFonts.includes(b.value); });
-    }
-    marginEditor.setState(data.margin || []);
-    mainEditor.setState(data.main || []);
+    applyState(data);
     statusEl.textContent = `Chargé : ${file.name}`;
   } catch (err) {
     statusEl.textContent = 'Erreur : fichier invalide.';
@@ -614,29 +645,7 @@ document.getElementById('demoBtn').addEventListener('click', async () => {
   try {
     const resp = await fetch('data/demo.json');
     const data = await resp.json();
-    inkColor.value = data.ink || '#1b3a6b';
-    root.setProperty('--ink', inkColor.value);
-    fontSize.value = (data.fontSize ?? 0.55);
-    fontSizeVal.textContent = fontSize.value;
-    root.setProperty('--font-size', fontSize.value + 'cm');
-    alignMain.value = data.alignMain || 'left';
-    root.setProperty('--align-main', alignMain.value);
-    vNudge.value = (data.vNudge ?? 2.5);
-    vNudgeVal.textContent = vNudge.value;
-    root.setProperty('--first-line-y', `calc(3.285cm + ${vNudge.value}mm)`);
-    letterSpacing.value = (data.letterSpacing ?? 0);
-    letterSpacingVal.textContent = letterSpacing.value;
-    root.setProperty('--letter-spacing', letterSpacing.value + 'px');
-    lineH.value = (data.lineH ?? 0.767);
-    lineHVal.textContent = parseFloat(lineH.value).toFixed(3);
-    root.setProperty('--line-h', lineH.value + 'cm');
-    printSeyes.checked = (data.printSeyes ?? false);
-    document.querySelectorAll('.page').forEach(p=>p.classList.toggle('print-seyes', printSeyes.checked));
-    if (Array.isArray(data.activeFonts)) {
-      fontListEl.querySelectorAll('input').forEach(b => { b.checked = data.activeFonts.includes(b.value); });
-    }
-    marginEditor.setState(data.margin || []);
-    mainEditor.setState(data.main || []);
+    applyState(data);
     statusEl.textContent = 'Démo chargée';
   } catch (err) {
     statusEl.textContent = 'Erreur démo : ' + err.message;
@@ -716,3 +725,4 @@ document.getElementById('screenshotBtn').addEventListener('click', async () => {
 mainEditor.setState([]);
 marginEditor.setState([]);
 document.getElementById('inputMain').focus();
+restoreAutosave();
