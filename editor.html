@@ -971,51 +971,51 @@ document.getElementById('demoBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('printBtn').addEventListener('click', () => window.print());
-// Screenshot exact du .page comme affiche a l'ecran - multipage
+// Export PDF via html2canvas + JPEG
 document.getElementById('screenshotBtn').addEventListener('click', async () => {
   const pages = document.querySelectorAll('.page');
   const includeSeyes = document.getElementById('printSeyes').checked;
-  let seyesDataUrl = null;
-  if(includeSeyes){
-    const firstPage = pages[0];
-    const origBg = firstPage ? (firstPage.style.backgroundImage || getComputedStyle(firstPage).backgroundImage) : '';
-    try{
-      const mm = origBg.match(/url\("([^"]+)"\)/);
-      if(mm && mm[1]){
-        if(mm[1].startsWith('data:')) seyesDataUrl = mm[1];
-        else {
-          const resp = await fetch(mm[1]);
-          const blob = await resp.blob();
-          seyesDataUrl = await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
-        }
-      }
-    }catch(e){ console.warn(e); }
-  }
+
+  // Pré-charger les polices actives
+  const activeFonts = getActiveFonts();
+  const preload = document.createElement('div');
+  preload.style.cssText = 'position:absolute;left:-9999px;top:0;white-space:nowrap;';
+  activeFonts.forEach(f => {
+    const span = document.createElement('span');
+    span.style.fontFamily = `'${f}', cursive`;
+    span.textContent = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789éèêëàâäùûüîïôöçœæÉÈÊËÀÂÄÙÛÜÎÏÔÖÇŒÆ';
+    preload.appendChild(span);
+  });
+  document.body.appendChild(preload);
+  await document.fonts.ready;
+  preload.remove();
+
   try{
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
     for(let pi=0; pi<pages.length; pi++){
       const pg = pages[pi];
-      if(seyesDataUrl) pdf.addImage(seyesDataUrl, 'PNG', 0, 0, 210, 297);
-      const prevBg = pg.style.backgroundImage;
-      const prevBgColor = pg.style.backgroundColor;
       const prevZoom = pg.style.zoom;
       const prevTransform = pg.style.transform;
       const prevTransformOrigin = pg.style.transformOrigin;
-      pg.style.backgroundImage='none';
-      pg.style.backgroundColor='transparent';
+      const prevBg = pg.style.backgroundImage;
+      const prevBgColor = pg.style.backgroundColor;
       pg.style.zoom='1';
       pg.style.transform='none';
       pg.style.transformOrigin='top center';
-      const canvas = await html2canvas(pg, { scale: 2, useCORS:true, allowTaint:false, backgroundColor:null, logging:false, letterRendering:true });
-      pg.style.backgroundImage = prevBg;
-      pg.style.backgroundColor = prevBgColor;
+      if(!includeSeyes){
+        pg.style.backgroundImage='none';
+        pg.style.backgroundColor='#fff';
+      }
+      const canvas = await html2canvas(pg, { scale: 4, useCORS:true, allowTaint:false, backgroundColor:'#fff', logging:false, letterRendering:true });
       pg.style.zoom = prevZoom;
       pg.style.transform = prevTransform;
       pg.style.transformOrigin = prevTransformOrigin;
-      const imgData = canvas.toDataURL('image/png');
+      pg.style.backgroundImage = prevBg;
+      pg.style.backgroundColor = prevBgColor;
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
       if(pi>0) pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
     }
     pdf.save('feuille-seyes-manuscrite.pdf');
     statusEl.textContent = `PDF exporté ${pages.length} page(s)`;
